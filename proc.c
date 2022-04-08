@@ -243,7 +243,7 @@ clone(void(*func) (void *, void *), void* arg1, void* arg2, void* stack)
   np->pgdir = curproc->pgdir;
   np->sz = curproc->sz;
   np->parent = curproc;
-  *np->tf = *proc->tf;
+  *np->tf = *curproc->tf;
   np->stack = stack;
   np->thread_count = 1; 
  
