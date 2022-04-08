@@ -274,6 +274,52 @@ clone(void(*func) (void *, void *), void* arg1, void* arg2, void* stack)
   return np->pid;
 }
 
+int
+join(void **stack)
+{
+  struct proc *p;
+  int threadsExist, pid;
+  struct proc *curproc = myproc();
+ 
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for zombie threads.
+    
+    threadsExist = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->parent != curproc || p->pgdir == p->parent->pgdir)
+        continue;
+      threadsExist = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        pid = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        p->state = UNUSED;
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        *stack = p->stack;
+        p->tf->esp = 0;
+        release(&ptable.lock);
+        return pid;
+      }
+ 
+    }
+ 
+    // No point waiting if we don't have any threads.
+    if(!threadsExist || curproc->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+ 
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    release(&ptable.lock);
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep 
+  }
+}
+
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.

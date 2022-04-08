@@ -30,6 +30,14 @@ int sys_clone(void)
  return clone(fcn, arg1, arg2, stack);
 }
 
+int sys_join(void)
+{
+  void **stack = NULL;
+  if(argptr(0, (void*)&stack, sizeof(void*)) < 0)
+    return -1;
+  return join(stack);
+}
+
 int
 sys_exit(void)
 {
