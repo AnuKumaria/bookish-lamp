@@ -13,10 +13,10 @@ struct ptr_struct {
 
 struct ptr_struct ptrs[MAX_PROC];
 
-static inline int fetch_and_add(int *var, int val) {   
-    __asm__ volatile
-    return 0;
-}
+// static inline int fetch_and_add(int *var, int val) {   
+//     __asm__ volatile
+//     return 0;
+// }
 
 void lock_init(lock_t *lock)
 {
