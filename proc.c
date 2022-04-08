@@ -221,6 +221,55 @@ fork(void)
   return pid;
 }
 
+// System call for creating threads.
+int
+clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack)
+{
+  //TODO: implement clone in proc.c
+  //TODO: implement clone in sysproc.c
+  //TODO: *add clone declaration in syscall.h
+  //TODO: *add clone declaration in syscall.c
+  //TOOD: *add clone declaration in defs.h
+  //TODO: *add clone declaration in usys.S
+  //TODO: *add clone declaration in user.h
+
+  int i, pid;
+  struct proc *np;
+
+  // Allocate process.
+  if((np = allocproc()) == 0)
+    return -1;
+
+  np->pgdir = proc->pgdir;
+  np->sz = proc->sz;
+  np->parent = proc;
+  *np->tf = *proc->tf;
+  np->is_thread = 1;  
+  np->stack = stack;
+
+  void * sp;
+  sp = stack + PGSIZE - sizeof(void *);
+  *(uint *) sp = (uint)arg2;
+  sp = stack + PGSIZE - 2 * sizeof(void *);
+  *(uint *) sp = (uint)arg1;
+  sp = stack + PGSIZE - 3 * sizeof(void *);
+  *(uint *) sp = 0xffffffff;
+
+  np->tf->esp = (uint)sp;
+	np->tf->eip = (uint)fcn;
+  np->tf->eax = 0;
+	
+	for(i = 0; i < NOFILE; i++)
+		if(proc->ofile[i])
+			np->ofile[i] = filedup(proc->ofile[i]);
+	np->cwd = idup(proc->cwd);
+  
+	pid = np->pid;
+	np->state = RUNNABLE;
+	safestrcpy(np->name, proc->name, sizeof(proc->name));
+	return pid;
+}
+
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
