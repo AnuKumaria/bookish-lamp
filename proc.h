@@ -10,6 +10,7 @@ struct cpu {
   struct proc *proc;           // The process running on this cpu or null
 };
 
+extern int clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack);
 extern struct cpu cpus[NCPU];
 extern int ncpu;
 
