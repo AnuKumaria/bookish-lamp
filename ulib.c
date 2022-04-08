@@ -3,6 +3,41 @@
 #include "fcntl.h"
 #include "user.h"
 #include "x86.h"
+#include "stddef.h"
+
+#define MAX_PROC 64
+#define PGSIZE 4096
+
+struct ptr_struct {
+};
+
+struct ptr_struct ptrs[MAX_PROC];
+
+static inline int fetch_and_add(int *var, int val) {   
+    __asm__ volatile
+    return val;
+}
+
+void lock_init(lock_t *lock)
+{
+}
+
+void lock_acquire(lock_t *lock)
+{
+}
+
+void lock_release(lock_t *lock)
+{
+}
+
+int thread_create(void (*start_routine)(void*, void*), void* arg1, void* arg2)
+{
+}
+
+int thread_join()
+{
+  return ret;
+}
 
 char*
 strcpy(char *s, const char *t)
