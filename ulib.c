@@ -15,7 +15,7 @@ struct ptr_struct ptrs[MAX_PROC];
 
 static inline int fetch_and_add(int *var, int val) {   
     __asm__ volatile
-    return val;
+    return 0;
 }
 
 void lock_init(lock_t *lock)
@@ -32,11 +32,12 @@ void lock_release(lock_t *lock)
 
 int thread_create(void (*start_routine)(void*, void*), void* arg1, void* arg2)
 {
+  return 0;
 }
 
 int thread_join()
 {
-  return ret;
+  return 0;
 }
 
 char*
