@@ -223,7 +223,7 @@ fork(void)
 
 // System call for creating threads.
 int
-clone(void(*func) (void *, void *), void* arg1, void* arg2, void* stack)
+clone(void(*fcn) (void *, void *), void* arg1, void* arg2, void* stack)
 {
   int i;
   struct proc *np;
