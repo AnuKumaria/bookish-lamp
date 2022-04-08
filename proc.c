@@ -257,7 +257,7 @@ clone(void(*fcn) (void *, void *), void* arg1, void* arg2, void* stack)
   *(uint*)fn_arg2 = (uint)arg2;
  
   np->tf->esp = (uint)fake_return;
-  np->tf->eip = (uint)func;
+  np->tf->eip = (uint)fcn;
   np->tf->ebp = np->tf->esp;
  
   np->tf->eax = 0;
