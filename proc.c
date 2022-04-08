@@ -223,51 +223,55 @@ fork(void)
 
 // System call for creating threads.
 int
-clone(void(*fcn)(void *, void *), void *arg1, void *arg2, void *stack)
+clone(void(*func) (void *, void *), void* arg1, void* arg2, void* stack)
 {
-  //TODO: implement clone in proc.c
-  //TODO: implement clone in sysproc.c
-  //TODO: *add clone declaration in syscall.h
-  //TODO: *add clone declaration in syscall.c
-  //TOOD: *add clone declaration in defs.h
-  //TODO: *add clone declaration in usys.S
-  //TODO: *add clone declaration in user.h
-
-  int i, pid;
+  int i;
   struct proc *np;
-
+  struct proc *curproc= myproc();
+  
+  if (((uint)stack % PGSIZE) != 0) {
+    return -1;
+  }
+  if ((curproc->sz - (uint)stack) < PGSIZE) {
+    return -1;
+  }
+ 
   // Allocate process.
   if((np = allocproc()) == 0)
     return -1;
-
-  np->pgdir = proc->pgdir;
-  np->sz = proc->sz;
-  np->parent = proc;
+ 
+  np->pgdir = curproc->pgdir;
+  np->sz = curproc->sz;
+  np->parent = curproc;
   *np->tf = *proc->tf;
-  np->is_thread = 1;  
   np->stack = stack;
-
-  void * sp;
-  sp = stack + PGSIZE - sizeof(void *);
-  *(uint *) sp = (uint)arg2;
-  sp = stack + PGSIZE - 2 * sizeof(void *);
-  *(uint *) sp = (uint)arg1;
-  sp = stack + PGSIZE - 3 * sizeof(void *);
-  *(uint *) sp = 0xffffffff;
-
-  np->tf->esp = (uint)sp;
-	np->tf->eip = (uint)fcn;
+  np->thread_count = 1; 
+ 
+  void *fake_return = stack + PGSIZE - 3 * sizeof(void*);
+  *(uint*)fake_return = 0xffffffff;
+ 
+  void *fn_arg1 = stack + PGSIZE - 2 * sizeof(void*);
+  *(uint*)fn_arg1 = (uint)arg1;
+ 
+  void *fn_arg2 = stack + PGSIZE - 1 * sizeof(void*);
+  *(uint*)fn_arg2 = (uint)arg2;
+ 
+  np->tf->esp = (uint)fake_return;
+  np->tf->eip = (uint)func;
+  np->tf->ebp = np->tf->esp;
+ 
   np->tf->eax = 0;
-	
-	for(i = 0; i < NOFILE; i++)
-		if(proc->ofile[i])
-			np->ofile[i] = filedup(proc->ofile[i]);
-	np->cwd = idup(proc->cwd);
+ 
+  for(i = 0; i < NOFILE; i++)
+    if(curproc->ofile[i])
+      np->ofile[i] = filedup(curproc->ofile[i]);
+  np->cwd = idup(curproc->cwd);
   
-	pid = np->pid;
-	np->state = RUNNABLE;
-	safestrcpy(np->name, proc->name, sizeof(proc->name));
-	return pid;
+  safestrcpy(np->name, curproc->name, sizeof(curproc->name));
+  acquire(&ptable.lock);
+  np->state = RUNNABLE;
+  release(&ptable.lock);
+  return np->pid;
 }
 
 // Exit the current process.  Does not return.
